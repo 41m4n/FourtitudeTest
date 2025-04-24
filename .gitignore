@@ -1,0 +1,54 @@
+# Build Results
+bin/
+obj/
+
+# Visual Studio User-Specific Files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files
+Generated_Code/
+GeneratedFiles/
+
+# Rider & VS Code settings (optional)
+.idea/
+.vscode/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+packages/
+# Uncomment below if you're using package references instead of packages folder
+# !packages/build/
+
+# ASP.NET Temporary files
+*~web.config
+*.Publish.xml
+
+# Logs
+*.log
+
+# Entity Framework
+Migrations/
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+
+# Test results
+TestResults/
+
+# Local DB
+*.mdf
+*.ldf
+
+# Others
+*.DS_Store
+Thumbs.db
+
+# Optional: Windows image cache
+ehthumbs.db

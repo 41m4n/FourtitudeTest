@@ -1,0 +1,6 @@
+@FourtitudeTest_HostAddress = http://localhost:5082
+
+GET {{FourtitudeTest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

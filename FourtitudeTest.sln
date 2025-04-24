@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourtitudeTest", "FourtitudeTest\FourtitudeTest.csproj", "{526018BF-8E14-4577-8D88-B7449DAE6188}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{526018BF-8E14-4577-8D88-B7449DAE6188}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{526018BF-8E14-4577-8D88-B7449DAE6188}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{526018BF-8E14-4577-8D88-B7449DAE6188}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{526018BF-8E14-4577-8D88-B7449DAE6188}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {535E8F04-2B6A-4635-AC06-FC02B4798E2E}
+	EndGlobalSection
+EndGlobal
