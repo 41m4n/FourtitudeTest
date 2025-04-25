@@ -11,12 +11,11 @@ namespace FourtitudeTest.Helper
         {
             var flatParams = new List<string>();
 
-            // Step 1: Alphabetically sorted top-level properties (excluding timestamp and sig)
             var topLevelDict = new Dictionary<string, string>
             {
                 { nameof(request.partnerkey), request.partnerkey },
                 { nameof(request.partnerRefno), request.partnerRefno },
-                { nameof(request.totalAmount), request.totalAmount.ToString() },
+                { nameof(request.totalAmount), request.totalAmount.Value.ToString() },
                 { nameof(request.partnerPassword), request.partnerPassword }
             };
 
@@ -25,7 +24,6 @@ namespace FourtitudeTest.Helper
                 flatParams.Add(kvp.Value ?? "");
             }
 
-            // Step 2: Add timestamp at the end
             if (DateTime.TryParse(request.timeStamp, out DateTime parsedTimestamp))
             {
                 flatParams.Insert(0,parsedTimestamp.ToString("yyyyMMddHHmmss"));
@@ -35,7 +33,6 @@ namespace FourtitudeTest.Helper
                 throw new FormatException("Invalid timestamp format.");
             }
 
-            // Step 3: Concatenate, hash with SHA256, lowercase hex, then base64
             var concatenated = string.Concat(flatParams);
             using var sha256 = SHA256.Create();
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(concatenated));
