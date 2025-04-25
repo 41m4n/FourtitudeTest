@@ -17,10 +17,20 @@ namespace FourtitudeTest.Helper.ModelValidation
             protected override ValidationResult IsValid(object value, ValidationContext validationContext)
             {
                 if (value is not string timestampStr)
+                {
                     return new ValidationResult("Invalid timestamp format");
+                }
+                    
 
-                if (!DateTime.TryParse(timestampStr, out var requestTime))
+                if (!DateTime.TryParse(
+                    timestampStr,
+                    null,
+                    System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal,
+                    out var requestTime)) 
+                {
                     return new ValidationResult("Timestamp could not be parsed");
+                }
+                    
 
                 var serverTimeUtc = DateTime.UtcNow;
                 var lowerBound = serverTimeUtc.AddMinutes(-_minMaxMinutes);
@@ -32,6 +42,25 @@ namespace FourtitudeTest.Helper.ModelValidation
                 }
 
                 return ValidationResult.Success;
+            }
+        }
+
+        public class MaxQtyAttribute : ValidationAttribute
+        {
+            private readonly int _max;
+            public MaxQtyAttribute(int max)
+            {
+                _max = max;
+                ErrorMessage = $"Quantity must not exceed {_max}.";
+            }
+
+            public override bool IsValid(object value)
+            {
+                if (value is int intValue)
+                {
+                    return intValue <= _max;
+                }
+                return false;
             }
         }
     }

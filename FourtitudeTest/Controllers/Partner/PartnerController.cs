@@ -1,6 +1,5 @@
 ﻿using FourtitudeTest.Model.Dbm;
 using FourtitudeTest.Model.Dto;
-using FourtitudeTest.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -9,16 +8,7 @@ namespace FourtitudeTest.Controllers.Partner
 {
     public class PartnerController : Controller
     {
-        private readonly DataContext _context;
-        private readonly PartnerService _partnerService;
-
-        public PartnerController(DataContext context, PartnerService partnerService)
-        {
-            _context = context;            
-            _partnerService = partnerService;
-        }
-
-        [HttpPost("[action]")]
+        [HttpPost("api/[action]")]
         public ActionResult submittrxmessage([FromBody] PartnerSubmitTransactionPostDto request)
         {
             if (request == null)
@@ -32,14 +22,23 @@ namespace FourtitudeTest.Controllers.Partner
 
             try
             {
-
-                // Step 1: Retrieve partner by partnerkey (or any identifier)
-                PartnerDbm currentPartner = _partnerService.GetPartnerByRefNo(request.partnerRefno);
-
-                if(currentPartner == null)
+                if (!ModelState.IsValid)
                 {
-                    currentPartner = Helper.Reuseable.Partners.FirstOrDefault(x => x.partnerRefNo == request.partnerRefno);
+                    var errorMessages = ModelState.Values.SelectMany(v => v.Errors)
+                                                          .Select(e => e.ErrorMessage)
+                                                          .ToList();
 
+                    return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
+                    {
+                        result = 0,
+                        resultMessage = string.Join(", ", errorMessages)
+                    }));
+                }
+
+                PartnerDbm currentPartner = Helper.Reuseable.Partners.FirstOrDefault(x => x.partnerRefNo == request.partnerRefno);
+
+                if (currentPartner == null)
+                {
                     if(currentPartner == null)
                     {
                         return BadRequest(SerializeWithoutNulls (new PartnerSubmitTransactionResponseDto
@@ -50,7 +49,6 @@ namespace FourtitudeTest.Controllers.Partner
                     }
                 }
 
-                // Step 2: Decode password and compare
                 var decodedPassword = Helper.Reuseable.DecodeBase64(request.partnerPassword);
                 if (currentPartner.partnerPassword != decodedPassword)
                 {
@@ -61,7 +59,6 @@ namespace FourtitudeTest.Controllers.Partner
                     }));
                 }
 
-                // Step 3: Signature validation
                 var calculatedSig = Helper.Reuseable.GenerateSignatureTransaction(request);
                 if (calculatedSig != request.sig)
                 {
@@ -77,7 +74,7 @@ namespace FourtitudeTest.Controllers.Partner
                     long totalAmountItems = 0;
                     foreach (var item in request.items)
                     {
-                        totalAmountItems += item.unitprice * item.qty;
+                        totalAmountItems += item.unitprice.Value * item.qty.Value;
                     }
 
                     if(request.totalAmount != totalAmountItems)
@@ -90,11 +87,10 @@ namespace FourtitudeTest.Controllers.Partner
                     }
                 }
 
-                long totalDiscount = CalculateDiscount(request.totalAmount);
+                long totalDiscount = CalculateDiscount(request.totalAmount.Value);
 
-                long finalAmount = request.totalAmount - totalDiscount;
+                long finalAmount = request.totalAmount.Value - totalDiscount;
 
-                // Step 4: Business logic or response
                 return Ok(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                 {
                     result = 1,
@@ -118,7 +114,6 @@ namespace FourtitudeTest.Controllers.Partner
         {
             double baseDiscountPercentage = 0;
 
-            // Base discount logic
             if (totalAmount >= 20000 && totalAmount <= 50000)
             {
                 baseDiscountPercentage = 0.05;
@@ -138,13 +133,11 @@ namespace FourtitudeTest.Controllers.Partner
 
             double conditionalDiscountPercentage = 0;
 
-            // Prime number check
             if (totalAmount > 50000 && IsPrime(totalAmount/100))
             {
                 conditionalDiscountPercentage += 0.08;
             }
 
-            // Ends with 5 check
             if (totalAmount > 90000 && (totalAmount/100) % 10 == 5)
             {
                 conditionalDiscountPercentage += 0.10;
@@ -152,7 +145,6 @@ namespace FourtitudeTest.Controllers.Partner
 
             double totalDiscountPercentage = baseDiscountPercentage + conditionalDiscountPercentage;
 
-            // Cap the total discount to 20%
             if (totalDiscountPercentage > 0.20)
             {
                 totalDiscountPercentage = 0.20;

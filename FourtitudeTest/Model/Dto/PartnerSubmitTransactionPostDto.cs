@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static FourtitudeTest.Helper.ModelValidation.PartnerSubmitTransactionPostDtoValidation;
 
 namespace FourtitudeTest.Model.Dto
 {
@@ -17,11 +18,12 @@ namespace FourtitudeTest.Model.Dto
         public string partnerPassword { get; set; }
 
         [Required]
-        public long totalAmount { get; set; }
+        public long? totalAmount { get; set; }
 
         public List<PartnerItem> items { get; set; }
 
         [Required]
+        [ValidTimestampAttribute(5)]
         public string timeStamp { get; set; }
 
         [Required]
@@ -32,16 +34,19 @@ namespace FourtitudeTest.Model.Dto
     {
         [Required]
         [MaxLength(50)]
+        [MinLength(1)]
         public string partneritemref { get; set; }
 
         [Required]
         [MaxLength(100)]
+        [MinLength(1)]
         public string name { get; set; }
 
         [Required]
-        public int qty { get; set; }
+        [MaxQtyAttribute(5)]
+        public int? qty { get; set; }
 
         [Required]
-        public long unitprice { get; set; }
+        public long? unitprice { get; set; }
     }
 }
