@@ -1,4 +1,5 @@
-﻿using FourtitudeTest.Model.Dto;
+﻿using FourtitudeTest.Model.Dbm;
+using FourtitudeTest.Model.Dto;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,7 +20,7 @@ namespace FourtitudeTest.Helper
                 { nameof(request.partnerPassword), request.partnerPassword }
             };
 
-            foreach (var kvp in topLevelDict.OrderBy(k => k.Key.ToLower()))
+            foreach (var kvp in topLevelDict)
             {
                 flatParams.Add(kvp.Value ?? "");
             }
@@ -27,7 +28,7 @@ namespace FourtitudeTest.Helper
             // Step 2: Add timestamp at the end
             if (DateTime.TryParse(request.timeStamp, out DateTime parsedTimestamp))
             {
-                flatParams.Prepend(parsedTimestamp.ToString("yyyyMMddHHmmss"));
+                flatParams.Insert(0,parsedTimestamp.ToString("yyyyMMddHHmmss"));
             }
             else
             {
@@ -49,6 +50,22 @@ namespace FourtitudeTest.Helper
             byte[] data = Convert.FromBase64String(base64Encoded);
             return Encoding.UTF8.GetString(data);
         }
+
+        public static readonly List<PartnerDbm> Partners = new List<PartnerDbm>
+        {
+            new PartnerDbm
+            {
+                allowedPartner = "FAKEGOOGLE",
+                partnerRefNo = "FG-00001",
+                partnerPassword = "FAKEPASSWORD1234"
+            },
+            new PartnerDbm
+            {
+                allowedPartner = "FAKEPEOPLE",
+                partnerRefNo = "FG-00002",
+                partnerPassword = "FAKEPASSWORD4578"
+            }
+        };
 
     }
 }

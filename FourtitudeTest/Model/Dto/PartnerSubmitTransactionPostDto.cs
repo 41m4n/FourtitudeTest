@@ -30,9 +30,18 @@ namespace FourtitudeTest.Model.Dto
 
     public class PartnerItem
     {
+        [Required]
+        [MaxLength(50)]
         public string partneritemref { get; set; }
+
+        [Required]
+        [MaxLength(100)]
         public string name { get; set; }
+
+        [Required]
         public int qty { get; set; }
+
+        [Required]
         public long unitprice { get; set; }
     }
 }

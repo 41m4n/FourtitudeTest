@@ -9,6 +9,5 @@ namespace FourtitudeTest.Model.Dbm
         public string partnerRefNo { get; set; }
         public string allowedPartner { get; set; }
         public string partnerPassword { get; set; }
-        public List<ItemDetailDbm> items { get; set; } = new List<ItemDetailDbm>();
     }
 }

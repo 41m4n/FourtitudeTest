@@ -1,3 +1,5 @@
+using FourtitudeTest.Middleware;
+using FourtitudeTest.Service;
 using Microsoft.EntityFrameworkCore;
 
 namespace FourtitudeTest
@@ -20,6 +22,11 @@ namespace FourtitudeTest
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).LogTo(Console.WriteLine, LogLevel.Information);
             });
 
+            builder.Logging.ClearProviders();
+            builder.Logging.AddLog4Net("log4net.config");
+
+            builder.Services.AddScoped<PartnerService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -28,6 +35,8 @@ namespace FourtitudeTest
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseMiddleware<Logging>();
 
             app.UseHttpsRedirection();
 

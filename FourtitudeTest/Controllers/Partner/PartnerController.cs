@@ -1,15 +1,21 @@
-﻿using FourtitudeTest.Model.Dto;
+﻿using FourtitudeTest.Model.Dbm;
+using FourtitudeTest.Model.Dto;
+using FourtitudeTest.Service;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FourtitudeTest.Controllers.Partner
 {
     public class PartnerController : Controller
     {
         private readonly DataContext _context;
+        private readonly PartnerService _partnerService;
 
-        public PartnerController(DataContext context)
+        public PartnerController(DataContext context, PartnerService partnerService)
         {
             _context = context;            
+            _partnerService = partnerService;
         }
 
         [HttpPost("[action]")]
@@ -17,47 +23,53 @@ namespace FourtitudeTest.Controllers.Partner
         {
             if (request == null)
             {
-                return BadRequest(new PartnerSubmitTransactionResponseDto
+                return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                 {
                     result = 0,
                     resultMessage = "Invalid request"
-                });
+                }));
             }
 
             try
             {
 
                 // Step 1: Retrieve partner by partnerkey (or any identifier)
-                var partner = _context.partnerDbm.FirstOrDefault(p => p.partnerRefNo == request.partnerRefno);
-                if (partner == null)
+                PartnerDbm currentPartner = _partnerService.GetPartnerByRefNo(request.partnerRefno);
+
+                if(currentPartner == null)
                 {
-                    return BadRequest(new PartnerSubmitTransactionResponseDto
+                    currentPartner = Helper.Reuseable.Partners.FirstOrDefault(x => x.partnerRefNo == request.partnerRefno);
+
+                    if(currentPartner == null)
                     {
-                        result = 0,
-                        resultMessage = "Partner not exist"
-                    });
+                        return BadRequest(SerializeWithoutNulls (new PartnerSubmitTransactionResponseDto
+                        {
+                            result = 0,
+                            resultMessage = "Access Denied!"
+                        }));
+                    }
                 }
 
                 // Step 2: Decode password and compare
                 var decodedPassword = Helper.Reuseable.DecodeBase64(request.partnerPassword);
-                if (partner.partnerPassword != decodedPassword)
+                if (currentPartner.partnerPassword != decodedPassword)
                 {
-                    return BadRequest(new PartnerSubmitTransactionResponseDto
+                    return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                     {
                         result = 0,
                         resultMessage = "Access Denied!"
-                    });
+                    }));
                 }
 
                 // Step 3: Signature validation
                 var calculatedSig = Helper.Reuseable.GenerateSignatureTransaction(request);
                 if (calculatedSig != request.sig)
                 {
-                    return BadRequest(new PartnerSubmitTransactionResponseDto
+                    return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                     {
                         result = 0,
                         resultMessage = "Access Denied!"
-                    });
+                    }));
                 }
 
                 if(request.items != null)
@@ -70,11 +82,11 @@ namespace FourtitudeTest.Controllers.Partner
 
                     if(request.totalAmount != totalAmountItems)
                     {
-                        return BadRequest(new PartnerSubmitTransactionResponseDto
+                        return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                         {
                             result = 0,
                             resultMessage = "Invalid Total Amount."
-                        });
+                        }));
                     }
                 }
 
@@ -83,22 +95,22 @@ namespace FourtitudeTest.Controllers.Partner
                 long finalAmount = request.totalAmount - totalDiscount;
 
                 // Step 4: Business logic or response
-                return Ok(new PartnerSubmitTransactionResponseDto
+                return Ok(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                 {
                     result = 1,
                     totalAmount = request.totalAmount,
                     totalDiscount = totalDiscount,
                     finalAmount = finalAmount,
-                });
+                }));
 
             }
             catch (Exception ex)
             {
-                return BadRequest(new PartnerSubmitTransactionResponseDto
+                return BadRequest(SerializeWithoutNulls(new PartnerSubmitTransactionResponseDto
                 {
                     result = 0,
-                    resultMessage = ex.Message
-                });
+                    resultMessage = ex.Message.ToString()
+                }));
             }
         }
 
@@ -133,7 +145,7 @@ namespace FourtitudeTest.Controllers.Partner
             }
 
             // Ends with 5 check
-            if (totalAmount > 90000 && totalAmount % 10 == 5)
+            if (totalAmount > 90000 && (totalAmount/100) % 10 == 5)
             {
                 conditionalDiscountPercentage += 0.10;
             }
@@ -177,6 +189,17 @@ namespace FourtitudeTest.Controllers.Partner
             }
 
             return true;
+        }
+
+        private static string SerializeWithoutNulls(object obj)
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            return JsonSerializer.Serialize(obj, options);
         }
     }
 }
